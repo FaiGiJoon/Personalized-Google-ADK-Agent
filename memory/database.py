@@ -39,15 +39,44 @@ def setup_user_db():
             PRIMARY KEY (session_id, context_key)
         );""")
 
-        # Seed with Casper's primary focus areas if they don't exist
-        conn.execute("""
+        # Seed with Casper's expanded project portfolio and focus areas
+        casper_projects = [
+            ('Law-Assistent-Agency-A2A', 'Project', 'Ecosystem A2A infrastructure for understanding Netherlands Law. TypeScript, MIT.'),
+            ('WiiBridge', 'Project', 'macOS HID bridge for Nintendo Wii controllers. Swift.'),
+            ('GBA-e-Reader-Retro-Playbox', 'Project', 'GBA e-Reader dot code generator tool. Python.'),
+            ('USBC-SATA-SSD-Chrome-Automator', 'Project', 'Python-based automation to redirect Chrome downloads to external SATA SSD.'),
+            ('Gmail-Real-Time-Cybersecurity-Scanner', 'Project', 'Real-time protection against email threats in Gmail. JavaScript.'),
+            ('Gevi', 'Project', 'TypeScript project.'),
+            ('Tailscale-for-MikroTik', 'Project', 'Tailscale in container on MikroTik optimized for SD card storage. RouterOS Script.'),
+            ('Axis-VMD-Automation', 'Project', 'Automation framework for Video Motion Detection on Axis network devices. Python.'),
+            ('LuminaSuite', 'Project', 'Automated DS and Wii U Save-State Backup Utility. Python.'),
+            ('omegaT-fork', 'Project', 'Fork of official OmegaT repo. Java.'),
+            ('Google-Apps-Script-Built-in-Bot', 'Project', 'Automation using Google Sheets. JavaScript, MIT.'),
+            ('Geo-Asset-Twin', 'Project', 'Geometric Asset Optimizer with 3D bin-packing and Bun.serve. TypeScript.'),
+            ('Ghost-Protocol', 'Project', 'Adaptive VPN & Tunneling Manager for MikroTik. TypeScript.'),
+            ('macOS-Local-OCR-LLM-Game-Translation', 'Project', 'Python utility for local OCR and LLM game translation.'),
+            ('PokeSync', 'Project', 'Pokemon save file synchronization across devices. Python.'),
+            ('secure-ollama-openclaw', 'Project', 'Reverse proxy setup for Ollama and OpenClaw. Shell.'),
+            ('Pokemon-3DS-Randomizer', 'Project', 'TypeScript-based Pokemon 3DS randomization tool.'),
+            ('Nintendo-DS-Emulator-Layout-Calculator', 'Project', 'Automated geometric calculations for DS emulator layouts. TypeScript.'),
+            ('FaiGiJoon.github.io', 'Project', 'Personal vibe-coded website. HTML.'),
+            ('my-citra-saves', 'Project', 'Testing repository for PokeSync save file sharing.'),
+            ('CodeBuddyByGemini', 'Project', 'IDE/Agentic Code Debugger. TypeScript.'),
+            ('Mirror-Database-Extracting', 'Project', 'Python-based database extraction utility.'),
+            ('F32-Ghydra', 'Project', 'TypeScript project related to Ghidra.'),
+            ('Jira-Automation-Gemini-A2A', 'Project', 'Jira automation using Gemini A2A. Python.'),
+            ('Benchmark-FF', 'Project', 'Python-based benchmarking tool.'),
+            ('chrome-devtools-mcp', 'Project', 'MCP server for Chrome DevTools. TypeScript.'),
+            ('timesfm', 'Project', 'Time Series Foundation Model by Google Research. Python.'),
+            ('cloud-run-mcp', 'Project', 'MCP server to deploy apps to Cloud Run. JavaScript.'),
+            ('Pokemon-3DS-Randomizer-tool', 'Project', 'Testing area for OpenClaw. TypeScript.'),
+            ('Casper', 'Person', 'Security researcher and automation developer. Likes Google ecosystem (Gemini CLI, Workspace CLI, Jules). Works with emulators and RouterOS.')
+        ]
+
+        conn.executemany("""
             INSERT OR IGNORE INTO knowledge_graph (user_id, entity_name, entity_type, details)
-            VALUES ('Casper', 'PokeSync', 'Project', 'Primary focus area: Pokemon data synchronization and analysis.');
-        """)
-        conn.execute("""
-            INSERT OR IGNORE INTO knowledge_graph (user_id, entity_name, entity_type, details)
-            VALUES ('Casper', 'Gmail_Security_Automation', 'Project', 'Primary focus area: Automation for Gmail security and threat detection.');
-        """)
+            VALUES ('Casper', ?, ?, ?);
+        """, casper_projects)
 
     print(f"✅ User profile database '{USER_DB_FILE}' is ready.")
 
