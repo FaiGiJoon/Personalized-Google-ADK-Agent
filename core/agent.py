@@ -82,10 +82,10 @@ if ADK_AVAILABLE:
     if optimize_pbr_team: casper_tools.append(FunctionTool(optimize_pbr_team))
     if run_chrome_automation: casper_tools.append(FunctionTool(run_chrome_automation))
 
-# The Casper C2 Agent - Defaults to Security Mode
+# The Casper C2 Agent - Defaults to Brain Mode for better contextual understanding
 casper_agent = LlmAgent(
     name="Casper_C2_Agent",
     model="gemini-2.0-flash",
     tools=casper_tools,
-    instruction=load_system_prompt("Security Mode"),
+    instruction=load_system_prompt("Brain Mode"),
 )
