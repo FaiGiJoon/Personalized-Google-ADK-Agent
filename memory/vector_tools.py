@@ -24,6 +24,16 @@ def query_technical_docs(query: str, collection: str = "default") -> List[Dict[s
             "source": "snort3-community-rules",
             "content": "alert tcp any any -> any any (msg:\"Potential quishing link\"; content:\"qr\"; sid:1000001;)",
             "relevance": 0.88
+        },
+        {
+            "source": "Snort3_Syntax_Guide.pdf",
+            "content": "Snort 3 rules require a valid action, protocol, source/destination IP and port, and options enclosed in parentheses.",
+            "relevance": 0.92
+        },
+        {
+            "source": "PBR_Competitive_Meta.txt",
+            "content": "In PBR, evasion moves like Double Team are often restricted. Speed and coverage are key factors for team optimization.",
+            "relevance": 0.85
         }
     ]
 
@@ -31,6 +41,12 @@ def query_technical_docs(query: str, collection: str = "default") -> List[Dict[s
 
 def index_document(filepath: str) -> str:
     """Adds a document to the vector search index."""
+    # Ensure filepath is treated relative to project root if it's not absolute
+    if not os.path.isabs(filepath):
+        from pathlib import Path
+        project_root = Path(__file__).resolve().parent.parent
+        filepath = str(project_root / filepath)
+
     if not os.path.exists(filepath):
         return f"Error: File {filepath} not found."
 

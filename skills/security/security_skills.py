@@ -9,13 +9,22 @@ def validate_snort_rule(rule: str) -> Dict[str, Any]:
     Validates a Snort 3 rule for syntax and basic security issues.
     """
     issues = []
+    valid_protocols = ["tcp", "udp", "icmp", "ip", "http", "ftp", "tls", "smb", "dns"]
 
     # Basic syntax checks for Snort 3
-    if not rule.startswith(("alert", "log", "pass", "drop", "reject", "rewrite")):
+    parts = rule.split()
+    if not parts or parts[0] not in ["alert", "log", "pass", "drop", "reject", "rewrite"]:
         issues.append("Rule must start with a valid action (e.g., 'alert').")
+
+    if len(parts) > 1 and parts[1] not in valid_protocols:
+        issues.append(f"Invalid or unsupported protocol: '{parts[1]}'. Expected one of {valid_protocols}.")
 
     if "(" not in rule or ")" not in rule:
         issues.append("Rule options must be enclosed in parentheses.")
+
+    # Check for mandatory keywords
+    if "msg:\"" not in rule:
+        issues.append("Rule is missing a 'msg' (message) string.")
 
     # Check for insecure or poorly performing patterns
     if "any any -> any any" in rule:
