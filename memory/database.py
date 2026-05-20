@@ -78,7 +78,7 @@ def setup_user_db():
             VALUES ('Casper', ?, ?, ?);
         """, casper_projects)
 
-    print(f"✅ User profile database '{USER_DB_FILE}' is ready.")
+    print(f"OK: User profile database '{USER_DB_FILE}' is ready.")
 
 # Session database file for persistent conversation history (ADK PersistentSessionService)
 SESSIONS_DIR = Path(os.path.expanduser("~")) / ".personal_agent" / "sessions"
