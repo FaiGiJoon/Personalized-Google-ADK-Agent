@@ -1,11 +1,13 @@
 import json
 import os
-from typing import List, Dict, Any, Optional
+from typing import Dict, Any, Optional
+from skills.models import PBRTeamSchema
 
-def optimize_pbr_team(team_data: Dict[str, Any]) -> Dict[str, Any]:
+def optimize_pbr_team(pbr_data: PBRTeamSchema) -> Dict[str, Any]:
     """
     Parses and suggests optimizations for Pokemon Battle Revolution (PBR) team files.
     """
+    team_data = pbr_data.team_data
     optimizations = []
 
     if "pokemon" not in team_data:
@@ -52,5 +54,3 @@ def load_pbr_team(filepath: str) -> Dict[str, Any]:
             return json.load(f)
     except Exception as e:
         return {"error": f"Failed to parse JSON: {e}"}
-
-# Example of how PBR logic might be used

@@ -10,30 +10,31 @@ if project_root not in sys.path:
 
 from skills.security.security_skills import validate_snort_rule
 from skills.gaming.gaming_skills import optimize_pbr_team
+from skills.models import SnortRuleSchema, PBRTeamSchema
 
 class TestSkills(unittest.TestCase):
 
     def test_validate_snort_rule_valid(self):
         rule = 'alert tcp 1.2.3.4 any -> 5.6.7.8 80 (msg:"Test Rule"; sid:1000001;)'
-        result = validate_snort_rule(rule)
+        result = validate_snort_rule(SnortRuleSchema(rule=rule))
         self.assertTrue(result["valid"])
         self.assertEqual(len(result["issues"]), 0)
 
     def test_validate_snort_rule_invalid_action(self):
         rule = 'invalid tcp any any -> any any (msg:"Test Rule"; sid:1000001;)'
-        result = validate_snort_rule(rule)
+        result = validate_snort_rule(SnortRuleSchema(rule=rule))
         self.assertFalse(result["valid"])
         self.assertIn("Rule must start with a valid action", result["issues"][0])
 
     def test_validate_snort_rule_missing_msg(self):
         rule = 'alert tcp any any -> any any (sid:1000001;)'
-        result = validate_snort_rule(rule)
+        result = validate_snort_rule(SnortRuleSchema(rule=rule))
         self.assertFalse(result["valid"])
         self.assertTrue(any("missing a 'msg'" in issue for issue in result["issues"]))
 
     def test_validate_snort_rule_invalid_protocol(self):
         rule = 'alert invalid_proto any any -> any any (msg:"Test"; sid:1000001;)'
-        result = validate_snort_rule(rule)
+        result = validate_snort_rule(SnortRuleSchema(rule=rule))
         self.assertFalse(result["valid"])
         self.assertTrue(any("Invalid or unsupported protocol" in issue for issue in result["issues"]))
 
@@ -47,7 +48,7 @@ class TestSkills(unittest.TestCase):
                 }
             ]
         }
-        result = optimize_pbr_team(team_data)
+        result = optimize_pbr_team(PBRTeamSchema(team_data=team_data))
         self.assertTrue(any("missing a held item" in opt for opt in result["optimizations"]))
         self.assertTrue(any("'Life Orb'" in opt for opt in result["optimizations"]))
 
@@ -61,7 +62,7 @@ class TestSkills(unittest.TestCase):
                 }
             ]
         }
-        result = optimize_pbr_team(team_data)
+        result = optimize_pbr_team(PBRTeamSchema(team_data=team_data))
         self.assertTrue(any("Evasion moves" in opt for opt in result["optimizations"]))
 
 if __name__ == "__main__":

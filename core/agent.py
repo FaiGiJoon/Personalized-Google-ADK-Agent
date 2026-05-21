@@ -2,12 +2,11 @@ import logging
 import sys
 import os
 import re
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("CasperC2")
-
-from pathlib import Path
 
 # Ensure project root is in sys.path for absolute imports
 project_root = str(Path(__file__).resolve().parent.parent)
@@ -74,6 +73,7 @@ setup_user_db()
 # Tool preparation
 casper_tools = []
 if ADK_AVAILABLE:
+    # ADK's FunctionTool automatically handles Pydantic models in the function signature
     if save_user_profile: casper_tools.append(FunctionTool(save_user_profile))
     if recall_user_profile: casper_tools.append(FunctionTool(recall_user_profile))
     if update_knowledge_graph: casper_tools.append(FunctionTool(update_knowledge_graph))
@@ -84,10 +84,13 @@ if ADK_AVAILABLE:
     if optimize_pbr_team: casper_tools.append(FunctionTool(optimize_pbr_team))
     if run_chrome_automation: casper_tools.append(FunctionTool(run_chrome_automation))
 
-# The Casper C2 Agent - Defaults to Brain Mode for better contextual understanding
+# The Casper C2 Agent - Configured for Google I/O 2024/2025 Standards
+# Parallel Function Calling is explicitly enabled via model configuration if supported
 casper_agent = LlmAgent(
     name="Casper_C2_Agent",
     model="gemini-2.0-flash",
     tools=casper_tools,
     instruction=load_system_prompt("Brain Mode"),
+    # Explicitly enabling parallel function calling (ADK 2.0+ standard)
+    parallel_tool_calls=True
 )
