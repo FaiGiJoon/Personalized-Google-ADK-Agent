@@ -19,6 +19,8 @@ except ImportError:
     except ImportError:
         USER_DB_FILE = os.path.join(os.path.dirname(__file__), "user_profile.db")
 
+from skills.models import UserProfileSchema, KnowledgeEntitySchema
+
 # Optional ADK import
 try:
     from google.adk.tools import ToolContext
@@ -31,9 +33,10 @@ except ImportError:
         def __init__(self, user_id):
             self.user_id = user_id
 
-def save_user_profile(tool_context: ToolContext, new_preferences: Dict[str, Any]) -> str:
+def save_user_profile(tool_context: ToolContext, profile_data: UserProfileSchema) -> str:
     """Saves or updates user preferences in the persistent database."""
     user_id = tool_context.session.user_id
+    new_preferences = profile_data.new_preferences
     with sqlite3.connect(USER_DB_FILE) as conn:
         for key, value in new_preferences.items():
             conn.execute("""
@@ -76,9 +79,13 @@ def recall_user_profile(tool_context: ToolContext) -> Dict[str, Any]:
 
     return result
 
-def update_knowledge_graph(tool_context: ToolContext, entity_name: str, entity_type: str, details: str) -> str:
+def update_knowledge_graph(tool_context: ToolContext, entity_data: KnowledgeEntitySchema) -> str:
     """Adds or updates an entity in Casper's Knowledge Graph."""
     user_id = tool_context.session.user_id
+    entity_name = entity_data.entity_name
+    entity_type = entity_data.entity_type
+    details = entity_data.details
+
     with sqlite3.connect(USER_DB_FILE) as conn:
         conn.execute("""
             INSERT INTO knowledge_graph (user_id, entity_name, entity_type, details)

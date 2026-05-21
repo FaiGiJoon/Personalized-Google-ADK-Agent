@@ -1,13 +1,15 @@
 import logging
 import re
-from typing import List, Dict, Any
+from typing import Dict, Any
+from skills.models import SnortRuleSchema, QuishingSchema
 
 logger = logging.getLogger("CasperC2.Security")
 
-def validate_snort_rule(rule: str) -> Dict[str, Any]:
+def validate_snort_rule(rule_data: SnortRuleSchema) -> Dict[str, Any]:
     """
     Validates a Snort 3 rule for syntax and basic security issues.
     """
+    rule = rule_data.rule
     issues = []
     valid_protocols = ["tcp", "udp", "icmp", "ip", "http", "ftp", "tls", "smb", "dns"]
 
@@ -47,10 +49,11 @@ def validate_snort_rule(rule: str) -> Dict[str, Any]:
         "rule": rule
     }
 
-def check_quishing_threats(content: str) -> Dict[str, Any]:
+def check_quishing_threats(quishing_data: QuishingSchema) -> Dict[str, Any]:
     """
     Analyzes content for 'quishing' (QR code phishing) or linguistic threats.
     """
+    content = quishing_data.content
     threats = []
 
     # Linguistic triggers for quishing/phishing
@@ -77,5 +80,3 @@ def check_quishing_threats(content: str) -> Dict[str, Any]:
         "threats": threats,
         "severity": "High" if "quishing" in str(threats).lower() else "Medium"
     }
-
-# Export functions for tool wrapping in core/agent.py if needed

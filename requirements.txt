@@ -1,3 +1,6 @@
 google-adk
 python-dotenv
 google-genai
+pydantic
+faiss-cpu
+sentence-transformers

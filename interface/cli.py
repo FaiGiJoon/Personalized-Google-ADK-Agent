@@ -23,6 +23,10 @@ from memory.database import SESSION_URL
 
 load_dotenv()
 
+async def get_user_input(prompt: str) -> str:
+    """Non-blocking input using asyncio.to_thread."""
+    return await asyncio.to_thread(input, prompt)
+
 async def run_chat():
     print(f"\n{'='*60}\nCASPER C2 AGENT\n{'='*60}")
 
@@ -56,7 +60,9 @@ async def run_chat():
 
     while True:
         try:
-            user_input = input("Casper: ").strip()
+            # Use non-blocking input
+            user_input = (await get_user_input("Casper: ")).strip()
+
             if user_input.lower() in ["exit", "quit"]:
                 break
             if not user_input:
@@ -75,6 +81,7 @@ async def run_chat():
 
             if ADK_COMPONENTS_AVAILABLE:
                 final_response = ""
+                # runner.run_async allows for non-blocking streaming of responses
                 async for event in runner.run_async(
                     user_id=user_id,
                     session_id=session.id,
@@ -85,6 +92,8 @@ async def run_chat():
 
                 print(f"Agent: {final_response}\n")
             else:
+                # Simulate some async work in mock mode
+                await asyncio.sleep(0.5)
                 print(f"Agent: [MOCK] I received your message: '{user_input}'. Current Mode: {casper_agent.instruction[:20]}...\n")
 
         except KeyboardInterrupt:

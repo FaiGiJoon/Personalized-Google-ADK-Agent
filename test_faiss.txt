@@ -1,0 +1,3 @@
+Casper loves FAISS memory system.
+
+It is very fast and efficient.
