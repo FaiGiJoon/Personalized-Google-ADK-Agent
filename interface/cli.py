@@ -1,10 +1,11 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Ensure project root is in sys.path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
@@ -51,7 +52,7 @@ async def run_chat():
         session = type('obj', (object,), {'id': 'mock_session'})()
 
     print("\nCasper C2 is ready! (Type 'exit' or 'quit' to stop)\n")
-    print("Special Commands: /mode [Security|Dev|Assistant]\n")
+    print("Special Commands: /mode [Security|Dev|Assistant|Brain]\n")
 
     while True:
         try:
@@ -66,7 +67,8 @@ async def run_chat():
                 mode_name = user_input.split(" ", 1)[1].strip()
                 new_instruction = load_system_prompt(f"{mode_name} Mode")
                 casper_agent.instruction = new_instruction
-                print(f"Switched to {mode_name} Mode.\n")
+                print(f"\n[SYSTEM] Mode switched successfully to: {mode_name} Mode")
+                print(f"{'-'*40}\n")
                 continue
 
             print("\nProcessing...", end="\r")

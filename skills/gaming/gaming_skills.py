@@ -14,10 +14,16 @@ def optimize_pbr_team(team_data: Dict[str, Any]) -> Dict[str, Any]:
     for pkmn in team_data.get("pokemon", []):
         name = pkmn.get("name", "Unknown")
         moves = pkmn.get("moves", [])
+        item = pkmn.get("item", "None")
 
         # Meta-game logic examples
         if len(moves) < 4:
             optimizations.append(f"{name} has only {len(moves)} moves. Consider adding more for versatility.")
+
+        # Check for held items
+        if item == "None" or not item:
+            suggested_item = "Life Orb" if any(m in ["earthquake", "thunderbolt", "ice beam", "flamethrower"] for m in [m.lower() for m in moves]) else "Leftovers"
+            optimizations.append(f"{name} is missing a held item. Consider '{suggested_item}'.")
 
         # Example check for common competitive patterns
         move_names = [m.lower() for m in moves]
@@ -26,6 +32,10 @@ def optimize_pbr_team(team_data: Dict[str, Any]) -> Dict[str, Any]:
 
         if "hyper beam" in move_names:
             optimizations.append(f"{name}: Hyper Beam is usually sub-optimal due to recharge. Consider Giga Impact or Return.")
+
+        # Check for evasion-inducing moves (often banned or discouraged)
+        if any(m in ["double team", "minimize"] for m in move_names):
+            optimizations.append(f"{name}: Evasion moves (Double Team/Minimize) are often banned in competitive PBR. Consider alternatives.")
 
     return {
         "original_team_size": len(team_data.get("pokemon", [])),

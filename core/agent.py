@@ -7,8 +7,10 @@ import re
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("CasperC2")
 
+from pathlib import Path
+
 # Ensure project root is in sys.path for absolute imports
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 

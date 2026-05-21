@@ -2,10 +2,11 @@ import sqlite3
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Dict, Any, List
 
 # Ensure project root is in sys.path
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
