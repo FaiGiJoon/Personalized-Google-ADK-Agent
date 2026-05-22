@@ -34,10 +34,12 @@ def load_system_prompt(mode: str = "Security Mode") -> str:
 
     return "You are Casper's C2 agent. Security-First mindset is active."
 
+from typing import Dict, Any, Optional
+
 # Check if google.adk is available
 try:
     from google.adk.agents import LlmAgent
-    from google.adk.tools import FunctionTool
+    from google.adk.tools import FunctionTool, ToolContext
     ADK_AVAILABLE = True
 except ImportError:
     logger.error("google.adk module not found. Some functionalities will be limited.")
@@ -46,6 +48,10 @@ except ImportError:
         def __init__(self, **kwargs):
             for k, v in kwargs.items():
                 setattr(self, k, v)
+    class ToolContext:
+        def __init__(self, session=None, state=None):
+            self.session = session
+            self.state = state if state is not None else {}
 
 # Import memory tools
 try:
@@ -70,6 +76,25 @@ except ImportError as e:
 # Ensure database is ready
 setup_user_db()
 
+def log_tool_usage_callback(
+    tool: Any,
+    args: Dict[str, Any],
+    tool_context: ToolContext,
+    tool_response: Any,
+) -> Any:
+    """
+    Level 4 Memory: Callback to log tool usage into the session state.
+    This allows the agent to 'remember' what tools it has used during the session.
+    """
+    if "tool_history" not in tool_context.state:
+        tool_context.state["tool_history"] = []
+
+    tool_name = getattr(tool, "name", str(tool))
+    tool_context.state["tool_history"].append(tool_name)
+
+    logger.info(f"Callback: Logged usage of tool '{tool_name}' to session state.")
+    return tool_response
+
 # Tool preparation
 casper_tools = []
 if ADK_AVAILABLE:
@@ -92,5 +117,7 @@ casper_agent = LlmAgent(
     tools=casper_tools,
     instruction=load_system_prompt("Brain Mode"),
     # Explicitly enabling parallel function calling (ADK 2.0+ standard)
-    parallel_tool_calls=True
+    parallel_tool_calls=True,
+    # Level 4 Memory: Adding a callback to monitor and update state
+    after_tool_callback=log_tool_usage_callback
 )

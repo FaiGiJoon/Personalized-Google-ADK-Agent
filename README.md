@@ -11,6 +11,19 @@ This project utilizes the following core components of the Google ADK (Agent Dev
 - **PersistentSessionService**: In `interface/cli.py`, this service is used to manage conversation sessions. It stores session history in a local SQLite database, allowing for persistent context across restarts.
 - **Runner**: The `Runner` class (in `interface/cli.py`) orchestrates the interaction between the user, the `LlmAgent`, and the `PersistentSessionService`. It handles the execution flow and manages message history.
 
+## ADK Memory Stack
+
+Casper C2 implements the 6 Levels of ADK Memory as defined in the Google Codelabs:
+
+1.  **Session & State (Level 1)**: Conversation context is maintained using ADK `Session` and `State`.
+2.  **Multi-Agent State (Level 2)**: Agents share structured state information via the session scratchpad.
+3.  **Persistence (Level 3)**: `PersistentSessionService` ensures memory survives reboots.
+4.  **Callbacks (Level 4)**: An `after_tool_callback` in `core/agent.py` automatically logs tool usage history to the session state.
+5.  **Custom Tools (Level 5)**: Specialized tools in `memory/tools.py` manage long-term user profiles and the Knowledge Graph.
+6.  **Multimodal Memory (Level 6)**: RAG capabilities in `memory/vector_tools.py` provide a foundation for multimodal retrieval.
+
+For a detailed guide, see [ADK_MEMORY_GUIDE.md](docs/ADK_MEMORY_GUIDE.md).
+
 ## Implementation Details
 
 The project is organized into several modules:
