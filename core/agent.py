@@ -116,8 +116,8 @@ casper_agent = LlmAgent(
     model="gemini-2.0-flash",
     tools=casper_tools,
     instruction=load_system_prompt("Brain Mode"),
-    # Explicitly enabling parallel function calling (ADK 2.0+ standard)
-    parallel_tool_calls=True,
+    # Explicitly enabling parallel worker (ADK 2.0+ standard)
+    parallel_worker=True,
     # Level 4 Memory: Adding a callback to monitor and update state
     after_tool_callback=log_tool_usage_callback
 )

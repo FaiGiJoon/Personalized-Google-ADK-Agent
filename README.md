@@ -24,6 +24,10 @@ Casper C2 implements the 6 Levels of ADK Memory as defined in the Google Codelab
 
 For a detailed guide, see [ADK_MEMORY_GUIDE.md](docs/ADK_MEMORY_GUIDE.md).
 
+## Agents CLI Workflow
+
+This repository follows the `agents-cli` workflow for building, evaluating, and deploying agents. For a detailed quickstart on using the CLI, see [AGENTS_CLI_QUICKSTART.md](docs/AGENTS_CLI_QUICKSTART.md).
+
 ## Implementation Details
 
 The project is organized into several modules:
