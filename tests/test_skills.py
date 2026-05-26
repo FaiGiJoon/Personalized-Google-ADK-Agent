@@ -8,9 +8,9 @@ project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from skills.security.security_skills import validate_snort_rule
+from skills.security.security_skills import validate_snort_rule, validate_yara_rule
 from skills.gaming.gaming_skills import optimize_pbr_team
-from skills.models import SnortRuleSchema, PBRTeamSchema
+from skills.models import SnortRuleSchema, PBRTeamSchema, YaraRuleSchema
 
 class TestSkills(unittest.TestCase):
 
@@ -37,6 +37,29 @@ class TestSkills(unittest.TestCase):
         result = validate_snort_rule(SnortRuleSchema(rule=rule))
         self.assertFalse(result["valid"])
         self.assertTrue(any("Invalid or unsupported protocol" in issue for issue in result["issues"]))
+
+    def test_validate_yara_rule_valid(self):
+        rule = 'rule TestRule { condition: true }'
+        result = validate_yara_rule(YaraRuleSchema(rule=rule))
+        self.assertTrue(result["valid"])
+
+    def test_validate_yara_rule_missing_keyword(self):
+        rule = 'TestRule { condition: true }'
+        result = validate_yara_rule(YaraRuleSchema(rule=rule))
+        self.assertFalse(result["valid"])
+        self.assertIn("Rule must start with the 'rule' keyword", result["issues"][0])
+
+    def test_validate_yara_rule_missing_condition(self):
+        rule = 'rule TestRule { strings: $a = "test" }'
+        result = validate_yara_rule(YaraRuleSchema(rule=rule))
+        self.assertFalse(result["valid"])
+        self.assertIn("missing the mandatory 'condition:' section", result["issues"][0])
+
+    def test_validate_yara_rule_missing_strings_section(self):
+        rule = 'rule TestRule { condition: $a }'
+        result = validate_yara_rule(YaraRuleSchema(rule=rule))
+        self.assertFalse(result["valid"])
+        self.assertTrue(any("references strings (via '$'), but the 'strings:' section is missing" in issue for issue in result["issues"]))
 
     def test_optimize_pbr_team_missing_item(self):
         team_data = {

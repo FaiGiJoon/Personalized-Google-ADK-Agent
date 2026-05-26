@@ -28,3 +28,6 @@ class VectorQuerySchema(BaseModel):
 
 class DocumentIndexSchema(BaseModel):
     filepath: str = Field(..., description="The local filesystem path to the document to be indexed.")
+
+class YaraRuleSchema(BaseModel):
+    rule: str = Field(..., description="The YARA rule string to validate.")
