@@ -1,9 +1,42 @@
 import logging
 import re
 from typing import Dict, Any
-from skills.models import SnortRuleSchema, QuishingSchema
+from skills.models import SnortRuleSchema, QuishingSchema, YaraRuleSchema
 
 logger = logging.getLogger("CasperC2.Security")
+
+def validate_yara_rule(rule_data: YaraRuleSchema) -> Dict[str, Any]:
+    """
+    Validates a YARA rule for basic syntax and required sections.
+    """
+    rule = rule_data.rule
+    issues = []
+
+    # Check for 'rule' keyword and a name
+    if not re.search(r'^\s*rule\s+\w+', rule, re.MULTILINE):
+        issues.append("Rule must start with the 'rule' keyword followed by a name.")
+
+    # Check for opening and closing braces
+    if "{" not in rule or "}" not in rule:
+        issues.append("Rule must be enclosed in curly braces '{ }'.")
+
+    # Check for mandatory 'condition:' section
+    if "condition:" not in rule:
+        issues.append("Rule is missing the mandatory 'condition:' section.")
+
+    # Check for optional 'strings:' section if strings are referenced in condition
+    # (Very basic check: if there's a '$' in condition but no 'strings:')
+    condition_match = re.search(r'condition:(.*)', rule, re.DOTALL)
+    if condition_match:
+        condition_text = condition_match.group(1)
+        if "$" in condition_text and "strings:" not in rule:
+            issues.append("Rule condition references strings (via '$'), but the 'strings:' section is missing.")
+
+    return {
+        "valid": len(issues) == 0,
+        "issues": issues,
+        "rule": rule
+    }
 
 def validate_snort_rule(rule_data: SnortRuleSchema) -> Dict[str, Any]:
     """

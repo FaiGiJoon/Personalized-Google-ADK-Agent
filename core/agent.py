@@ -66,12 +66,12 @@ except ImportError as e:
 
 # Import skills
 try:
-    from skills.security.security_skills import validate_snort_rule, check_quishing_threats
+    from skills.security.security_skills import validate_snort_rule, check_quishing_threats, validate_yara_rule
     from skills.gaming.gaming_skills import optimize_pbr_team
     from skills.browser_skills import run_chrome_automation
 except ImportError as e:
     logger.warning(f"Skill modules could not be imported: {e}")
-    validate_snort_rule = check_quishing_threats = optimize_pbr_team = run_chrome_automation = None
+    validate_snort_rule = check_quishing_threats = validate_yara_rule = optimize_pbr_team = run_chrome_automation = None
 
 # Ensure database is ready
 setup_user_db()
@@ -105,6 +105,7 @@ if ADK_AVAILABLE:
     if query_technical_docs: casper_tools.append(FunctionTool(query_technical_docs))
     if index_document: casper_tools.append(FunctionTool(index_document))
     if validate_snort_rule: casper_tools.append(FunctionTool(validate_snort_rule))
+    if validate_yara_rule: casper_tools.append(FunctionTool(validate_yara_rule))
     if check_quishing_threats: casper_tools.append(FunctionTool(check_quishing_threats))
     if optimize_pbr_team: casper_tools.append(FunctionTool(optimize_pbr_team))
     if run_chrome_automation: casper_tools.append(FunctionTool(run_chrome_automation))
