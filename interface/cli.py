@@ -11,7 +11,7 @@ if project_root not in sys.path:
 
 try:
     from google.adk.runners import Runner
-    from google.adk.sessions import PersistentSessionService
+    from google.adk.sessions.sqlite_session_service import SqliteSessionService
     from google.genai import types
     ADK_COMPONENTS_AVAILABLE = True
 except ImportError:
@@ -19,7 +19,7 @@ except ImportError:
     ADK_COMPONENTS_AVAILABLE = False
 
 from core.agent import casper_agent, load_system_prompt
-from memory.database import SESSION_URL
+from memory.database import SESSION_URL, SESSION_DB_FILE
 
 load_dotenv()
 
@@ -34,13 +34,14 @@ async def run_chat():
     app_name = casper_agent.name
 
     if ADK_COMPONENTS_AVAILABLE:
-        # Initialize Persistent Session Service
-        session_service = PersistentSessionService(url=SESSION_URL)
+        # Initialize SQLite Session Service
+        # SqliteSessionService expects a path, not a URL
+        session_service = SqliteSessionService(db_path=str(SESSION_DB_FILE))
 
         # Check for existing sessions or create a new one
-        sessions = await session_service.list_sessions(app_name=app_name, user_id=user_id)
-        if sessions:
-            session = sessions[0]
+        response = await session_service.list_sessions(app_name=app_name, user_id=user_id)
+        if response.sessions:
+            session = response.sessions[0]
             print(f"Resuming existing C2 session: {session.id}")
         else:
             session = await session_service.create_session(app_name=app_name, user_id=user_id)
