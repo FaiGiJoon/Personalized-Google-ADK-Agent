@@ -21,6 +21,7 @@ class KnowledgeEntitySchema(BaseModel):
     entity_name: str = Field(..., description="The name of the entity to add or update in the Knowledge Graph.")
     entity_type: str = Field(..., description="The type of the entity (e.g., 'Project', 'Person', 'Tool').")
     details: str = Field(..., description="Detailed description or information about the entity.")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Optional JSON metadata for the entity.")
 
 class VectorQuerySchema(BaseModel):
     query: str = Field(..., description="The natural language query to search for in technical documentation.")
@@ -28,6 +29,7 @@ class VectorQuerySchema(BaseModel):
 
 class DocumentIndexSchema(BaseModel):
     filepath: str = Field(..., description="The local filesystem path to the document to be indexed.")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Optional multimodal metadata (e.g., 'image_description', 'media_url').")
 
 class YaraRuleSchema(BaseModel):
     rule: str = Field(..., description="The YARA rule string to validate.")

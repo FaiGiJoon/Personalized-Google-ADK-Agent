@@ -26,6 +26,7 @@ def setup_user_db():
             entity_name TEXT NOT NULL,
             entity_type TEXT NOT NULL,
             details TEXT,
+            metadata TEXT, -- JSON field for extra attributes (ADK Level 5/6)
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(user_id, entity_name)
         );""")
@@ -41,41 +42,41 @@ def setup_user_db():
 
         # Seed with Casper's expanded project portfolio and focus areas
         casper_projects = [
-            ('Law-Assistent-Agency-A2A', 'Project', 'Ecosystem A2A infrastructure for understanding Netherlands Law. TypeScript, MIT.'),
-            ('WiiBridge', 'Project', 'macOS HID bridge for Nintendo Wii controllers. Swift.'),
-            ('GBA-e-Reader-Retro-Playbox', 'Project', 'GBA e-Reader dot code generator tool. Python.'),
-            ('USBC-SATA-SSD-Chrome-Automator', 'Project', 'Python-based automation to redirect Chrome downloads to external SATA SSD.'),
-            ('Gmail-Real-Time-Cybersecurity-Scanner', 'Project', 'Real-time protection against email threats in Gmail. JavaScript.'),
-            ('Gevi', 'Project', 'TypeScript project.'),
-            ('Tailscale-for-MikroTik', 'Project', 'Tailscale in container on MikroTik optimized for SD card storage. RouterOS Script.'),
-            ('Axis-VMD-Automation', 'Project', 'Automation framework for Video Motion Detection on Axis network devices. Python.'),
-            ('LuminaSuite', 'Project', 'Automated DS and Wii U Save-State Backup Utility. Python.'),
-            ('omegaT-fork', 'Project', 'Fork of official OmegaT repo. Java.'),
-            ('Google-Apps-Script-Built-in-Bot', 'Project', 'Automation using Google Sheets. JavaScript, MIT.'),
-            ('Geo-Asset-Twin', 'Project', 'Geometric Asset Optimizer with 3D bin-packing and Bun.serve. TypeScript.'),
-            ('Ghost-Protocol', 'Project', 'Adaptive VPN & Tunneling Manager for MikroTik. TypeScript.'),
-            ('macOS-Local-OCR-LLM-Game-Translation', 'Project', 'Python utility for local OCR and LLM game translation.'),
-            ('PokeSync', 'Project', 'Pokemon save file synchronization across devices. Python.'),
-            ('secure-ollama-openclaw', 'Project', 'Reverse proxy setup for Ollama and OpenClaw. Shell.'),
-            ('Pokemon-3DS-Randomizer', 'Project', 'TypeScript-based Pokemon 3DS randomization tool.'),
-            ('Nintendo-DS-Emulator-Layout-Calculator', 'Project', 'Automated geometric calculations for DS emulator layouts. TypeScript.'),
-            ('FaiGiJoon.github.io', 'Project', 'Personal vibe-coded website. HTML.'),
-            ('my-citra-saves', 'Project', 'Testing repository for PokeSync save file sharing.'),
-            ('CodeBuddyByGemini', 'Project', 'IDE/Agentic Code Debugger. TypeScript.'),
-            ('Mirror-Database-Extracting', 'Project', 'Python-based database extraction utility.'),
-            ('F32-Ghydra', 'Project', 'TypeScript project related to Ghidra.'),
-            ('Jira-Automation-Gemini-A2A', 'Project', 'Jira automation using Gemini A2A. Python.'),
-            ('Benchmark-FF', 'Project', 'Python-based benchmarking tool.'),
-            ('chrome-devtools-mcp', 'Project', 'MCP server for Chrome DevTools. TypeScript.'),
-            ('timesfm', 'Project', 'Time Series Foundation Model by Google Research. Python.'),
-            ('cloud-run-mcp', 'Project', 'MCP server to deploy apps to Cloud Run. JavaScript.'),
-            ('Pokemon-3DS-Randomizer-tool', 'Project', 'Testing area for OpenClaw. TypeScript.'),
-            ('Casper', 'Person', 'Security researcher and automation developer. Likes Google ecosystem (Gemini CLI, Workspace CLI, Jules). Works with emulators and RouterOS.')
+            ('Law-Assistent-Agency-A2A', 'Project', 'Ecosystem A2A infrastructure for understanding Netherlands Law. TypeScript, MIT.', '{"tech_stack": ["TypeScript"], "license": "MIT"}'),
+            ('WiiBridge', 'Project', 'macOS HID bridge for Nintendo Wii controllers. Swift.', '{"platform": "macOS", "language": "Swift"}'),
+            ('GBA-e-Reader-Retro-Playbox', 'Project', 'GBA e-Reader dot code generator tool. Python.', '{"language": "Python"}'),
+            ('USBC-SATA-SSD-Chrome-Automator', 'Project', 'Python-based automation to redirect Chrome downloads to external SATA SSD.', '{"language": "Python", "tags": ["automation"]}'),
+            ('Gmail-Real-Time-Cybersecurity-Scanner', 'Project', 'Real-time protection against email threats in Gmail. JavaScript.', '{"language": "JavaScript", "security_focus": true}'),
+            ('Gevi', 'Project', 'TypeScript project.', '{"language": "TypeScript"}'),
+            ('Tailscale-for-MikroTik', 'Project', 'Tailscale in container on MikroTik optimized for SD card storage. RouterOS Script.', '{"platform": "MikroTik", "tags": ["networking"]}'),
+            ('Axis-VMD-Automation', 'Project', 'Automation framework for Video Motion Detection on Axis network devices. Python.', '{"language": "Python", "tags": ["security"]}'),
+            ('LuminaSuite', 'Project', 'Automated DS and Wii U Save-State Backup Utility. Python.', '{"language": "Python", "tags": ["gaming"]}'),
+            ('omegaT-fork', 'Project', 'Fork of official OmegaT repo. Java.', '{"language": "Java"}'),
+            ('Google-Apps-Script-Built-in-Bot', 'Project', 'Automation using Google Sheets. JavaScript, MIT.', '{"language": "JavaScript", "platform": "Google Apps Script"}'),
+            ('Geo-Asset-Twin', 'Project', 'Geometric Asset Optimizer with 3D bin-packing and Bun.serve. TypeScript.', '{"language": "TypeScript", "tags": ["3D"]}'),
+            ('Ghost-Protocol', 'Project', 'Adaptive VPN & Tunneling Manager for MikroTik. TypeScript.', '{"language": "TypeScript", "platform": "MikroTik"}'),
+            ('macOS-Local-OCR-LLM-Game-Translation', 'Project', 'Python utility for local OCR and LLM game translation.', '{"language": "Python", "tags": ["AI", "gaming"]}'),
+            ('PokeSync', 'Project', 'Pokemon save file synchronization across devices. Python.', '{"language": "Python", "tags": ["gaming"]}'),
+            ('secure-ollama-openclaw', 'Project', 'Reverse proxy setup for Ollama and OpenClaw. Shell.', '{"language": "Shell"}'),
+            ('Pokemon-3DS-Randomizer', 'Project', 'TypeScript-based Pokemon 3DS randomization tool.', '{"language": "TypeScript", "tags": ["gaming"]}'),
+            ('Nintendo-DS-Emulator-Layout-Calculator', 'Project', 'Automated geometric calculations for DS emulator layouts. TypeScript.', '{"language": "TypeScript", "tags": ["gaming"]}'),
+            ('FaiGiJoon.github.io', 'Project', 'Personal vibe-coded website. HTML.', '{"language": "HTML"}'),
+            ('my-citra-saves', 'Project', 'Testing repository for PokeSync save file sharing.', '{"tags": ["gaming"]}'),
+            ('CodeBuddyByGemini', 'Project', 'IDE/Agentic Code Debugger. TypeScript.', '{"language": "TypeScript", "tags": ["AI"]}'),
+            ('Mirror-Database-Extracting', 'Project', 'Python-based database extraction utility.', '{"language": "Python"}'),
+            ('F32-Ghydra', 'Project', 'TypeScript project related to Ghidra.', '{"language": "TypeScript"}'),
+            ('Jira-Automation-Gemini-A2A', 'Project', 'Jira automation using Gemini A2A. Python.', '{"language": "Python", "tags": ["AI", "automation"]}'),
+            ('Benchmark-FF', 'Project', 'Python-based benchmarking tool.', '{"language": "Python"}'),
+            ('chrome-devtools-mcp', 'Project', 'MCP server for Chrome DevTools. TypeScript.', '{"language": "TypeScript"}'),
+            ('timesfm', 'Project', 'Time Series Foundation Model by Google Research. Python.', '{"language": "Python", "tags": ["AI"]}'),
+            ('cloud-run-mcp', 'Project', 'MCP server to deploy apps to Cloud Run. JavaScript.', '{"language": "JavaScript", "platform": "Cloud Run"}'),
+            ('Pokemon-3DS-Randomizer-tool', 'Project', 'Testing area for OpenClaw. TypeScript.', '{"language": "TypeScript"}'),
+            ('Casper', 'Person', 'Security researcher and automation developer based in the Netherlands. Expert in Google ecosystem (Gemini, Workspace, Cloud Run), networking (MikroTik, RouterOS), and retro-gaming emulators.', '{"location": "Netherlands", "focus": ["Security", "Automation", "Emulators"], "expertise": ["Google ADK", "Python", "TypeScript"]}')
         ]
 
         conn.executemany("""
-            INSERT OR IGNORE INTO knowledge_graph (user_id, entity_name, entity_type, details)
-            VALUES ('Casper', ?, ?, ?);
+            INSERT OR IGNORE INTO knowledge_graph (user_id, entity_name, entity_type, details, metadata)
+            VALUES ('Casper', ?, ?, ?, ?);
         """, casper_projects)
 
     print(f"OK: User profile database '{USER_DB_FILE}' is ready.")

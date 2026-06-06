@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from typing import List, Dict, Any
 from pathlib import Path
 
@@ -44,7 +45,7 @@ def query_technical_docs(query_data: VectorQuerySchema) -> List[Dict[str, Any]]:
         # Load index and documents
         index = faiss.read_index(str(INDEX_PATH))
         with open(DOCS_PATH, "r") as f:
-            documents = [line.strip().split("|", 1) for line in f.readlines()]
+            documents = [line.strip().split("|", 2) for line in f.readlines()]
 
         # Generate query embedding
         model = get_model()
@@ -57,10 +58,15 @@ def query_technical_docs(query_data: VectorQuerySchema) -> List[Dict[str, Any]]:
         results = []
         for dist, idx in zip(distances[0], indices[0]):
             if idx < len(documents):
-                source, content = documents[idx]
+                doc_parts = documents[idx]
+                source = doc_parts[0]
+                content = doc_parts[1]
+                metadata = json.loads(doc_parts[2]) if len(doc_parts) > 2 else {}
+
                 results.append({
                     "source": source,
                     "content": content,
+                    "metadata": metadata,
                     "relevance": float(1 / (1 + dist))  # Simplified relevance score
                 })
         return results
@@ -69,8 +75,12 @@ def query_technical_docs(query_data: VectorQuerySchema) -> List[Dict[str, Any]]:
         return [{"error": str(e)}]
 
 def index_document(doc_data: DocumentIndexSchema) -> str:
-    """Adds a document to the production-ready FAISS index."""
+    """
+    Adds a document to the production-ready FAISS index.
+    Supports Level 6 Multimodal Memory via metadata (e.g., image descriptions).
+    """
     filepath = doc_data.filepath
+    metadata = doc_data.metadata or {}
 
     # Ensure filepath is treated relative to project root if it's not absolute
     if not os.path.isabs(filepath):
@@ -108,12 +118,13 @@ def index_document(doc_data: DocumentIndexSchema) -> str:
         faiss.write_index(index, str(INDEX_PATH))
 
         with open(DOCS_PATH, "a") as f:
+            meta_json = json.dumps(metadata)
             for chunk in chunks:
                 # Replace newlines in chunk to keep it on one line in the text file
                 clean_chunk = chunk.replace("\n", " ")
-                f.write(f"{os.path.basename(filepath)}|{clean_chunk}\n")
+                f.write(f"{os.path.basename(filepath)}|{clean_chunk}|{meta_json}\n")
 
-        return f"Successfully indexed {len(chunks)} chunks from {filepath} into the FAISS store."
+        return f"Successfully indexed {len(chunks)} chunks from {filepath} into the FAISS store (Multimodal metadata included)."
     except Exception as e:
         logger.error(f"Error during document indexing: {e}")
         return f"Error indexing {filepath}: {e}"
