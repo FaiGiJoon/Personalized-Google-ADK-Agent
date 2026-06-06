@@ -26,3 +26,5 @@ README.md|### Running the Agent
 README.md|Start the agent by running the main entry point:
 README.md|```bash python3 main.py ```
 README.md|- **/mode [ModeName]**: Switch the agent's operational mode (e.g., `/mode Security`, `/mode Dev`, `/mode Assistant`, `/mode Brain`). - **exit** or **quit**: Terminate the session.
+test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}

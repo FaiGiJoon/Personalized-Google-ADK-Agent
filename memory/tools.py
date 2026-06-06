@@ -65,32 +65,42 @@ def recall_user_profile(tool_context: ToolContext) -> Dict[str, Any]:
 
         # Fetch knowledge graph entities
         kg_rows = conn.execute("""
-            SELECT entity_name, entity_type, details
+            SELECT entity_name, entity_type, details, metadata
             FROM knowledge_graph
             WHERE user_id = ? OR user_id = 'Casper'
         """, (user_id,)).fetchall()
 
-        for name, type_, details in kg_rows:
+        for name, type_, details, metadata_str in kg_rows:
             result["knowledge_graph"].append({
                 "name": name,
                 "type": type_,
-                "details": details
+                "details": details,
+                "metadata": json.loads(metadata_str) if metadata_str else {}
             })
 
     return result
 
 def update_knowledge_graph(tool_context: ToolContext, entity_data: KnowledgeEntitySchema) -> str:
-    """Adds or updates an entity in Casper's Knowledge Graph."""
+    """
+    Adds or updates an entity in Casper's Knowledge Graph.
+    Level 2 Memory: Shares the updated entity in tool_context.state for multi-agent coordination.
+    """
     user_id = tool_context.session.user_id
     entity_name = entity_data.entity_name
     entity_type = entity_data.entity_type
     details = entity_data.details
+    metadata = json.dumps(entity_data.metadata) if entity_data.metadata else None
+
+    # Level 2: Update session state to share info with other agents/turns
+    if "latest_entities" not in tool_context.state:
+        tool_context.state["latest_entities"] = []
+    tool_context.state["latest_entities"].append(entity_name)
 
     with sqlite3.connect(USER_DB_FILE) as conn:
         conn.execute("""
-            INSERT INTO knowledge_graph (user_id, entity_name, entity_type, details)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO knowledge_graph (user_id, entity_name, entity_type, details, metadata)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT(user_id, entity_name)
-            DO UPDATE SET entity_type = excluded.entity_type, details = excluded.details, last_updated = CURRENT_TIMESTAMP;
-        """, (user_id, entity_name, entity_type, details))
-    return f"Knowledge Graph updated for: {entity_name}"
+            DO UPDATE SET entity_type = excluded.entity_type, details = excluded.details, metadata = excluded.metadata, last_updated = CURRENT_TIMESTAMP;
+        """, (user_id, entity_name, entity_type, details, metadata))
+    return f"Knowledge Graph updated for: {entity_name}. State updated with latest entity."
