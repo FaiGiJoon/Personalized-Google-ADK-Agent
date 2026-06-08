@@ -34,11 +34,11 @@ def load_system_prompt(mode: str = "Security Mode") -> str:
 
     return "You are Casper's C2 agent. Security-First mindset is active."
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 # Check if google.adk is available
 try:
-    from google.adk.agents import LlmAgent
+    from google.adk.agents import LlmAgent, SequentialAgent, LoopAgent, ParallelAgent
     from google.adk.tools import FunctionTool, ToolContext
     ADK_AVAILABLE = True
 except ImportError:
@@ -52,6 +52,7 @@ except ImportError:
         def __init__(self, session=None, state=None):
             self.session = session
             self.state = state if state is not None else {}
+    SequentialAgent = LoopAgent = ParallelAgent = LlmAgent
 
 # Import memory tools
 try:
@@ -84,7 +85,6 @@ def log_tool_usage_callback(
 ) -> Any:
     """
     Level 4 Memory: Callback to log tool usage into the session state.
-    This allows the agent to 'remember' what tools it has used during the session.
     """
     if "tool_history" not in tool_context.state:
         tool_context.state["tool_history"] = []
@@ -95,30 +95,95 @@ def log_tool_usage_callback(
     logger.info(f"Callback: Logged usage of tool '{tool_name}' to session state.")
     return tool_response
 
-# Tool preparation
-casper_tools = []
-if ADK_AVAILABLE:
-    # ADK's FunctionTool automatically handles Pydantic models in the function signature
-    if save_user_profile: casper_tools.append(FunctionTool(save_user_profile))
-    if recall_user_profile: casper_tools.append(FunctionTool(recall_user_profile))
-    if update_knowledge_graph: casper_tools.append(FunctionTool(update_knowledge_graph))
-    if query_technical_docs: casper_tools.append(FunctionTool(query_technical_docs))
-    if index_document: casper_tools.append(FunctionTool(index_document))
-    if validate_snort_rule: casper_tools.append(FunctionTool(validate_snort_rule))
-    if validate_yara_rule: casper_tools.append(FunctionTool(validate_yara_rule))
-    if check_quishing_threats: casper_tools.append(FunctionTool(check_quishing_threats))
-    if optimize_pbr_team: casper_tools.append(FunctionTool(optimize_pbr_team))
-    if run_chrome_automation: casper_tools.append(FunctionTool(run_chrome_automation))
+# Shared configuration
+MODEL_NAME = "gemini-2.0-flash"
 
-# The Casper C2 Agent - Configured for Google I/O 2024/2025 Standards
-# Parallel Function Calling is explicitly enabled via model configuration if supported
-casper_agent = LlmAgent(
-    name="Casper_C2_Agent",
-    model="gemini-2.0-flash",
-    tools=casper_tools,
-    instruction=load_system_prompt("Brain Mode"),
-    # Explicitly enabling parallel worker (ADK 2.0+ standard)
+def create_specialized_agents():
+    """Factory to create specialized agents to avoid sharing instances between parents."""
+    security_tools = []
+    if ADK_AVAILABLE:
+        if validate_snort_rule: security_tools.append(FunctionTool(validate_snort_rule))
+        if validate_yara_rule: security_tools.append(FunctionTool(validate_yara_rule))
+        if check_quishing_threats: security_tools.append(FunctionTool(check_quishing_threats))
+
+    security_agent = LlmAgent(
+        name="Security_Agent",
+        model=MODEL_NAME,
+        tools=security_tools,
+        instruction=load_system_prompt("Security Mode"),
+        description="Handles network security, rule validation (Snort/YARA), and threat detection."
+    )
+
+    dev_agent = LlmAgent(
+        name="Dev_Agent",
+        model=MODEL_NAME,
+        tools=[],
+        instruction=load_system_prompt("Dev Mode"),
+        description="Assists with software development, code optimization, and debugging."
+    )
+
+    assistant_tools = []
+    if ADK_AVAILABLE:
+        if save_user_profile: assistant_tools.append(FunctionTool(save_user_profile))
+        if recall_user_profile: assistant_tools.append(FunctionTool(recall_user_profile))
+        if optimize_pbr_team: assistant_tools.append(FunctionTool(optimize_pbr_team))
+        if run_chrome_automation: assistant_tools.append(FunctionTool(run_chrome_automation))
+
+    assistant_agent = LlmAgent(
+        name="Assistant_Agent",
+        model=MODEL_NAME,
+        tools=assistant_tools,
+        instruction=load_system_prompt("Assistant Mode"),
+        description="Handles personal assistance, user profiling, gaming optimizations, and web automation."
+    )
+
+    brain_tools = []
+    if ADK_AVAILABLE:
+        if update_knowledge_graph: brain_tools.append(FunctionTool(update_knowledge_graph))
+        if query_technical_docs: brain_tools.append(FunctionTool(query_technical_docs))
+        if index_document: brain_tools.append(FunctionTool(index_document))
+
+    brain_agent = LlmAgent(
+        name="Brain_Agent",
+        model=MODEL_NAME,
+        tools=brain_tools,
+        instruction=load_system_prompt("Brain Mode"),
+        description="Maintains long-term memory, knowledge graphs, and technical documentation indexing."
+    )
+
+    return security_agent, dev_agent, assistant_agent, brain_agent
+
+# Create primary instances for the root agent
+security_agent, dev_agent, assistant_agent, brain_agent = create_specialized_agents()
+
+# Create separate instances for the workflow to avoid "already has a parent" error
+w_security_agent, _, _, w_brain_agent = create_specialized_agents()
+
+# Workflow Agents
+# A SequentialAgent runs its sub-agents one after another.
+research_and_verify_workflow = SequentialAgent(
+    name="Research_and_Verify_Workflow",
+    description="Automated workflow to research a topic and then verify its security implications.",
+    sub_agents=[w_brain_agent, w_security_agent]
+)
+
+# Root Agent - The entry point and supervisor
+root_agent = LlmAgent(
+    name="Casper_C2_Root",
+    model=MODEL_NAME,
+    sub_agents=[security_agent, dev_agent, assistant_agent, brain_agent, research_and_verify_workflow],
+    instruction=(
+        "You are Casper's C2 Root Agent. You orchestrate requests to specialized agents.\n"
+        "- Use 'Security_Agent' for security, Snort, YARA, or threat analysis.\n"
+        "- Use 'Dev_Agent' for coding and development tasks.\n"
+        "- Use 'Assistant_Agent' for personal tasks, PBR, or browser automation.\n"
+        "- Use 'Brain_Agent' for deep context, memory, or technical docs.\n"
+        "- Use 'Research_and_Verify_Workflow' when the user wants a deep research followed by a security audit.\n"
+        "Always choose the best sub-agent for the task."
+    ),
     parallel_worker=True,
-    # Level 4 Memory: Adding a callback to monitor and update state
     after_tool_callback=log_tool_usage_callback
 )
+
+# Alias for compatibility
+casper_agent = root_agent
