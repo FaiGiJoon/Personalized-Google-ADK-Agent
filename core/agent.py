@@ -98,6 +98,22 @@ def log_tool_usage_callback(
 # Shared configuration
 MODEL_NAME = "gemini-2.0-flash"
 
+ORCHESTRATOR_GUIDANCE = (
+    "You are Casper's C2 Root Agent. You orchestrate requests to specialized agents.\n"
+    "- Use 'Security_Agent' for security, Snort, YARA, or threat analysis.\n"
+    "- Use 'Dev_Agent' for coding and development tasks.\n"
+    "- Use 'Assistant_Agent' for personal tasks, PBR, or browser automation.\n"
+    "- Use 'Brain_Agent' for deep context, memory, or technical docs.\n"
+    "- Use 'Research_and_Verify_Workflow' when the user wants a deep research followed by a security audit.\n"
+    "Always choose the best sub-agent for the task."
+)
+
+def get_root_instruction(mode_instruction: str = "") -> str:
+    """Returns the full instruction for the Root Agent with optional mode-specific guidance."""
+    if mode_instruction:
+        return f"Root Agent Guidance: {mode_instruction}\n\n{ORCHESTRATOR_GUIDANCE}"
+    return ORCHESTRATOR_GUIDANCE
+
 def create_specialized_agents():
     """Factory to create specialized agents to avoid sharing instances between parents."""
     security_tools = []
@@ -172,15 +188,7 @@ root_agent = LlmAgent(
     name="Casper_C2_Root",
     model=MODEL_NAME,
     sub_agents=[security_agent, dev_agent, assistant_agent, brain_agent, research_and_verify_workflow],
-    instruction=(
-        "You are Casper's C2 Root Agent. You orchestrate requests to specialized agents.\n"
-        "- Use 'Security_Agent' for security, Snort, YARA, or threat analysis.\n"
-        "- Use 'Dev_Agent' for coding and development tasks.\n"
-        "- Use 'Assistant_Agent' for personal tasks, PBR, or browser automation.\n"
-        "- Use 'Brain_Agent' for deep context, memory, or technical docs.\n"
-        "- Use 'Research_and_Verify_Workflow' when the user wants a deep research followed by a security audit.\n"
-        "Always choose the best sub-agent for the task."
-    ),
+    instruction=get_root_instruction(),
     parallel_worker=True,
     after_tool_callback=log_tool_usage_callback
 )
