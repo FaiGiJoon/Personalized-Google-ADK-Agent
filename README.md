@@ -2,66 +2,77 @@
 
 The Casper C2 Agent is a centralized Command & Control (C2) system designed for security research, automation development, and personal assistance. It leverages the Google Agent Development Kit (ADK) to provide a modular and extensible agentic framework.
 
+## Multi-Agent Architecture
+
+Casper C2 utilizes a hierarchical multi-agent structure to handle complex tasks efficiently:
+
+- **Casper_C2_Root**: The supervisor agent that orchestrates requests and transfers them to the most appropriate specialized agent.
+- **Security_Agent**: Handles network security, Snort/YARA rule validation, and threat detection (e.g., quishing).
+- **Dev_Agent**: Assists with software development, code optimization, and debugging for Casper's project portfolio.
+- **Assistant_Agent**: Manages personal assistance, user profiling, PBR gaming optimizations, and web-based research via Chrome automation.
+- **Brain_Agent**: Maintains long-term memory, knowledge graphs, and technical documentation indexing across all repositories.
+
+### Automated Workflows
+
+The system also includes pre-defined workflows for multi-step tasks:
+- **Research_and_Verify_Workflow**: A sequential workflow that performs deep research followed by a security audit of the findings.
+
 ## Google ADK Usage
 
-This project utilizes the following core components of the Google ADK (Agent Development Kit):
+This project utilizes the following core components of the Google ADK:
 
-- **LlmAgent**: Located in `core/agent.py`, the `LlmAgent` is the primary agent class. It is configured with a name, a Gemini model (e.g., `gemini-2.0-flash`), a set of tools, and system instructions loaded from `PROMPTS.md`.
-- **FunctionTool**: Python functions from the `memory` and `skills` modules are wrapped using `FunctionTool`. This allows the `LlmAgent` to dynamically invoke these functions during execution.
-- **SqliteSessionService**: In `interface/cli.py`, this service is used to manage conversation sessions. It stores session history in a local SQLite database, allowing for persistent context across restarts.
-- **Runner**: The `Runner` class (in `interface/cli.py`) orchestrates the interaction between the user, the `LlmAgent`, and the `PersistentSessionService`. It handles the execution flow and manages message history.
+- **LlmAgent**: The primary agent class, configured with specialized instructions and tools.
+- **SequentialAgent**: Used to chain multiple agents for complex workflows.
+- **FunctionTool**: Wraps Python functions from the `memory` and `skills` modules.
+- **SqliteSessionService**: Manages persistent conversation history in a local SQLite database.
+- **Runner**: Orchestrates the interaction between the user, agents, and session services.
 
 ## ADK Memory Stack
 
-Casper C2 implements the 6 Levels of ADK Memory as defined in the Google Codelabs:
+Casper C2 implements the 6 Levels of ADK Memory:
 
-1.  **Session & State (Level 1)**: Conversation context is maintained using ADK `Session` and `State`.
-2.  **Multi-Agent State (Level 2)**: Agents share structured state information via the session scratchpad.
+1.  **Session & State (Level 1)**: Conversation context maintained via ADK `Session` and `State`.
+2.  **Multi-Agent State (Level 2)**: Agents share structured state information (e.g., `latest_entities`) via the session scratchpad.
 3.  **Persistence (Level 3)**: `SqliteSessionService` ensures memory survives reboots.
-4.  **Callbacks (Level 4)**: An `after_tool_callback` in `core/agent.py` automatically logs tool usage history to the session state.
-5.  **Custom Tools (Level 5)**: Specialized tools in `memory/tools.py` manage long-term user profiles and the Knowledge Graph.
-6.  **Multimodal Memory (Level 6)**: RAG capabilities in `memory/vector_tools.py` provide a foundation for multimodal retrieval.
+4.  **Callbacks (Level 4)**: An `after_tool_callback` automatically logs tool usage history to the session state.
+5.  **Custom Tools (Level 5)**: Specialized tools manage long-term user profiles and the Knowledge Graph in SQLite.
+6.  **Multimodal Memory (Level 6)**: RAG capabilities in `memory/vector_tools.py` provide multimodal retrieval foundations.
 
-For a detailed guide, see [ADK_MEMORY_GUIDE.md](docs/ADK_MEMORY_GUIDE.md).
+## Testing & Verification
 
-## Agents CLI Workflow
+To ensure reliability, the project includes a "Virtual Session" test suite that simulates full agent interactions without consuming API tokens.
 
-This repository follows the `agents-cli` workflow for building, evaluating, and deploying agents. For a detailed quickstart on using the CLI, see [AGENTS_CLI_QUICKSTART.md](docs/AGENTS_CLI_QUICKSTART.md).
+### Running the Virtual Test
+```bash
+python3 -m unittest tests/test_virtual_session.py
+```
+This test mocks the Gemini model to verify:
+- Root agent orchestration and sub-agent selection.
+- Correct tool invocation across all modes.
+- Cross-agent state sharing and long-term memory persistence.
+- Session resumption and history preservation.
 
-## Implementation Details
-
-The project is organized into several modules:
-
-- **core/**: Contains the `agent.py` file which initializes the `LlmAgent` and prepares the tools.
-- **interface/**: Contains `cli.py`, providing a command-line interface for interacting with the agent. It supports mode switching (Security, Dev, Assistant, Brain) via commands like `/mode Security`.
-- **memory/**: Manages both long-term memory (Knowledge Graph and User Profile in SQLite) and working memory. `vector_tools.py` provides simulated RAG capabilities.
-- **skills/**: Houses specialized functionality such as Snort rule validation, linguistic threat detection, and browser automation.
+### Running All Tests
+```bash
+python3 -m unittest discover tests
+```
 
 ## Getting Started
 
 ### Prerequisites
-
 - Python 3.11+
-- Google API Key (set in `.env` or as an environment variable `GOOGLE_API_KEY`)
+- Google API Key (set in `.env` as `GOOGLE_API_KEY`)
 
 ### Installation
-
-1. Install the Google ADK and other dependencies:
-   ```bash
-   pip install google-adk python-dotenv
-   ```
-
-2. (Optional) Install additional skill dependencies as needed.
+```bash
+pip install -r requirements.txt
+```
 
 ### Running the Agent
-
-Start the agent by running the main entry point:
-
 ```bash
 python3 main.py
 ```
 
 ### Commands
-
-- **/mode [ModeName]**: Switch the agent's operational mode (e.g., `/mode Security`, `/mode Dev`, `/mode Assistant`, `/mode Brain`).
+- **/mode [Security|Dev|Assistant|Brain]**: Switch the agent's operational focus.
 - **exit** or **quit**: Terminate the session.

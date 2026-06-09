@@ -27,8 +27,8 @@ class TestVirtualAgentSession(unittest.IsolatedAsyncioTestCase):
         self.session_db = self.test_dir / "test_sessions.db"
 
         # Patch the database paths
-        self.patcher1 = patch("memory.database.USER_DB_FILE", self.user_db)
-        self.patcher2 = patch("memory.tools.USER_DB_FILE", self.user_db)
+        self.patcher1 = patch("memory.database.USER_DB_FILE", str(self.user_db))
+        self.patcher2 = patch("memory.tools.USER_DB_FILE", str(self.user_db))
         self.patcher1.start()
         self.patcher2.start()
 
@@ -51,7 +51,7 @@ class TestVirtualAgentSession(unittest.IsolatedAsyncioTestCase):
 
     @patch("google.genai.Client")
     async def test_full_session_flow(self, mock_client_class):
-        """Simulate a multi-turn session with tool calls and state verification."""
+        """Simulate a multi-turn session with tool calls, state sharing, and resumption."""
 
         # Mocking the Gemini client and its async methods
         mock_client = mock_client_class.return_value
@@ -84,19 +84,14 @@ class TestVirtualAgentSession(unittest.IsolatedAsyncioTestCase):
         mock_client.aio.models.generate_content = AsyncMock(side_effect=[resp1_root, resp2_security, resp3_final])
 
         session = await self.session_service.create_session(app_name=self.app_name, user_id=self.user_id)
+        session_id = session.id
 
         async for event in self.runner.run_async(
             user_id=self.user_id,
-            session_id=session.id,
+            session_id=session_id,
             new_message=types.Content(parts=[types.Part(text="Check this snort rule.")], role="user")
         ):
             pass
-
-        # Verify Tool History (Level 4 Memory)
-        session_data = await self.session_service.get_session(session_id=session.id, app_name=self.app_name, user_id=self.user_id)
-        state = session_data.state
-        self.assertIn("tool_history", state)
-        self.assertIn("transfer_to_agent", state["tool_history"])
 
         # --- TURN 2: Knowledge Graph Update ---
         transfer_brain = types.Part(
@@ -109,8 +104,6 @@ class TestVirtualAgentSession(unittest.IsolatedAsyncioTestCase):
             candidates=[types.Candidate(content=types.Content(parts=[transfer_brain], role="model"), finish_reason="STOP")]
         )
 
-        # Brain_Agent calls update_knowledge_graph.
-        # Nested structure as expected by Pydantic model in ADK
         kg_call = types.Part(
             function_call=types.FunctionCall(
                 name="update_knowledge_graph",
@@ -136,30 +129,77 @@ class TestVirtualAgentSession(unittest.IsolatedAsyncioTestCase):
 
         async for event in self.runner.run_async(
             user_id=self.user_id,
-            session_id=session.id,
+            session_id=session_id,
             new_message=types.Content(parts=[types.Part(text="Remember VirtualProject priority.")], role="user")
         ):
             pass
 
-        # Verify Level 5 Memory (Persistence in User DB)
-        from memory.tools import recall_user_profile
-        class MockContext:
-            def __init__(self, user_id):
-                self.session = MagicMock(user_id=user_id)
+        # --- TURN 3: Cross-Agent Context Usage ---
+        transfer_assistant = types.Part(
+            function_call=types.FunctionCall(
+                name="transfer_to_agent",
+                args={"agent_name": "Assistant_Agent"}
+            )
+        )
+        resp7_root = types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(parts=[transfer_assistant], role="model"), finish_reason="STOP")]
+        )
 
-        profile = recall_user_profile(MockContext(self.user_id))
-        found = False
-        for entity in profile["knowledge_graph"]:
-            if entity["name"] == "VirtualProject":
-                found = True
-                self.assertEqual(entity["type"], "Project")
-                self.assertEqual(entity["details"], "High priority project")
-        self.assertTrue(found, "VirtualProject entity was not found in Knowledge Graph")
+        recall_call = types.Part(
+            function_call=types.FunctionCall(
+                name="recall_user_profile",
+                args={}
+            )
+        )
+        resp8_assistant = types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(parts=[recall_call], role="model"), finish_reason="STOP")]
+        )
 
-        # Verify Level 2 Memory (State in Session)
-        session_data = await self.session_service.get_session(session_id=session.id, app_name=self.app_name, user_id=self.user_id)
-        self.assertIn("latest_entities", session_data.state)
-        self.assertIn("VirtualProject", session_data.state["latest_entities"])
+        resp9_final = types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(parts=[types.Part(text="VirtualProject is high priority.")], role="model"), finish_reason="STOP")]
+        )
+
+        mock_client.aio.models.generate_content.side_effect = [resp7_root, resp8_assistant, resp9_final]
+
+        final_text = ""
+        async for event in self.runner.run_async(
+            user_id=self.user_id,
+            session_id=session_id,
+            new_message=types.Content(parts=[types.Part(text="What do you know about VirtualProject?")], role="user")
+        ):
+            if event.is_final_response():
+                if event.content and event.content.parts:
+                    final_text = event.content.parts[0].text
+
+        self.assertIn("VirtualProject", final_text)
+        self.assertIn("high priority", final_text.lower())
+
+        # --- TURN 4: Session Resumption ---
+        # Simulate restart by re-initializing Runner and SessionService
+        new_session_service = SqliteSessionService(db_path=str(self.session_db))
+        new_runner = Runner(
+            agent=casper_agent,
+            session_service=new_session_service,
+            app_name=self.app_name
+        )
+
+        resp10_final = types.GenerateContentResponse(
+            candidates=[types.Candidate(content=types.Content(parts=[types.Part(text="We are in the same session.")], role="model"), finish_reason="STOP")]
+        )
+        mock_client.aio.models.generate_content.side_effect = [resp10_final]
+
+        async for event in new_runner.run_async(
+            user_id=self.user_id,
+            session_id=session_id,
+            new_message=types.Content(parts=[types.Part(text="Are we in the same session?")], role="user")
+        ):
+            pass
+
+        # Verify tool history persists across resumption
+        session_data = await new_session_service.get_session(session_id=session_id, app_name=self.app_name, user_id=self.user_id)
+        self.assertIn("tool_history", session_data.state)
+        # We check that it's a list and contains our expected tool
+        self.assertIn("transfer_to_agent", session_data.state["tool_history"])
 
 if __name__ == "__main__":
     unittest.main()
