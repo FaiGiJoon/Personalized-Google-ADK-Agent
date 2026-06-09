@@ -166,6 +166,9 @@ research_and_verify_workflow = SequentialAgent(
     description="Automated workflow to research a topic and then verify its security implications.",
     sub_agents=[w_brain_agent, w_security_agent]
 )
+# Fix for ADK 2.1.0 AttributeError: 'SequentialAgent' object has no attribute 'mode'
+if not hasattr(research_and_verify_workflow, "mode"):
+    object.__setattr__(research_and_verify_workflow, "mode", "multi_turn")
 
 # Root Agent - The entry point and supervisor
 root_agent = LlmAgent(

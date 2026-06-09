@@ -2,3 +2,11 @@ test_multimodal.txt|This is a test document for multimodal memory.|{"media_type"
 test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
 test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
 test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|This is a test document for multimodal memory.|{"media_type": "image", "description": "QR Code for login"}
+test_multimodal.txt|It contains info about a QR code scan.|{"media_type": "image", "description": "QR Code for login"}
