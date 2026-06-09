@@ -90,8 +90,15 @@ def check_quishing_threats(quishing_data: QuishingSchema) -> Dict[str, Any]:
     threats = []
 
     # Linguistic triggers for quishing/phishing
-    quishing_keywords = ["qr code", "scan to", "scan the code", "authenticate via qr"]
-    phishing_keywords = ["urgent", "action required", "password reset", "verify your account"]
+    quishing_keywords = [
+        "qr code", "scan to", "scan the code", "authenticate via qr",
+        "scan me", "quick response code", "scan for login"
+    ]
+    phishing_keywords = [
+        "urgent", "action required", "password reset", "verify your account",
+        "suspicious activity", "security alert", "update your information",
+        "limited time offer", "win a prize", "inheritance"
+    ]
 
     content_lower = content.lower()
 
@@ -104,9 +111,16 @@ def check_quishing_threats(quishing_data: QuishingSchema) -> Dict[str, Any]:
             threats.append(f"Potential phishing linguistic trigger: '{kw}'")
 
     # Check for suspicious URLs or redirections (simplified)
-    if re.search(r'https?://[^\s]+', content_lower):
-        if "bit.ly" in content_lower or "tinyurl.com" in content_lower:
-            threats.append("Shortened URL detected, which is common in quishing/phishing.")
+    # Refined regex for URL detection
+    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+    urls = re.findall(url_pattern, content_lower)
+
+    suspicious_domains = ["bit.ly", "tinyurl.com", "t.co", "goo.gl", "ow.ly", "is.gd"]
+
+    if urls:
+        for url in urls:
+            if any(domain in url for domain in suspicious_domains):
+                threats.append(f"Shortened/Suspicious URL detected: {url}")
 
     return {
         "threat_detected": len(threats) > 0,

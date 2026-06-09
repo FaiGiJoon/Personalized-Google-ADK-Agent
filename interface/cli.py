@@ -18,7 +18,7 @@ except ImportError:
     print("Warning: google.adk or google.genai modules not found. CLI will run in mock mode.")
     ADK_COMPONENTS_AVAILABLE = False
 
-from core.agent import casper_agent, load_system_prompt
+from core.agent import casper_agent, load_system_prompt, get_root_instruction
 from memory.database import SESSION_URL, SESSION_DB_FILE
 
 load_dotenv()
@@ -74,15 +74,7 @@ async def run_chat():
                 mode_name = user_input.split(" ", 1)[1].strip()
                 new_instruction = load_system_prompt(f"{mode_name} Mode")
                 # In multi-agent mode, we update the root_agent's general guidance
-                casper_agent.instruction = f"Root Agent Guidance: {new_instruction}\n\n" + (
-                    "You are Casper's C2 Root Agent. You orchestrate requests to specialized agents.\n"
-                    "- Use 'Security_Agent' for security, Snort, YARA, or threat analysis.\n"
-                    "- Use 'Dev_Agent' for coding and development tasks.\n"
-                    "- Use 'Assistant_Agent' for personal tasks, PBR, or browser automation.\n"
-                    "- Use 'Brain_Agent' for deep context, memory, or technical docs.\n"
-                    "- Use 'Research_and_Verify_Workflow' when the user wants a deep research followed by a security audit.\n"
-                    "Always choose the best sub-agent for the task."
-                )
+                casper_agent.instruction = get_root_instruction(new_instruction)
                 print(f"\n[SYSTEM] Root Agent guidance updated to: {mode_name} Mode")
                 print(f"[SYSTEM] The Root Agent will still orchestrate between specialized sub-agents.")
                 print(f"{'-'*40}\n")
