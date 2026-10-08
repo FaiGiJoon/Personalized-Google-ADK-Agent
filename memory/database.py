@@ -71,7 +71,9 @@ def setup_user_db():
             ('timesfm', 'Project', 'Time Series Foundation Model by Google Research. Python.', '{"language": "Python", "tags": ["AI"]}'),
             ('cloud-run-mcp', 'Project', 'MCP server to deploy apps to Cloud Run. JavaScript.', '{"language": "JavaScript", "platform": "Cloud Run"}'),
             ('Pokemon-3DS-Randomizer-tool', 'Project', 'Testing area for OpenClaw. TypeScript.', '{"language": "TypeScript"}'),
-            ('Casper', 'Person', 'Security researcher and automation developer based in the Netherlands. Expert in Google ecosystem (Gemini, Workspace, Cloud Run), networking (MikroTik, RouterOS), and retro-gaming emulators.', '{"location": "Netherlands", "focus": ["Security", "Automation", "Emulators"], "expertise": ["Google ADK", "Python", "TypeScript"]}')
+            ('Casper', 'Person', 'Security researcher and automation developer based in the Netherlands. Expert in Google ecosystem (Gemini, Workspace, Cloud Run), networking (MikroTik, RouterOS), and retro-gaming emulators.', '{"location": "Netherlands", "focus": ["Security", "Automation", "Emulators"], "expertise": ["Google ADK", "Python", "TypeScript"]}'),
+            ('MacBook Neo', 'HardwareProfile', 'Apple Silicon MacBook laptop setup for macOS local LLM inference, Metal Performance Shaders (MPS) PyTorch acceleration, MLX framework, Ollama endpoint integration, and Google ADK agent execution with unified memory optimization.', '{"os": "macOS", "architecture": "arm64", "acceleration": "MPS/Metal", "local_llm_runtime": "Ollama", "recommended_models": ["llama3:8b", "gemma2:9b", "mistral:7b"]}'),
+            ('Alienware x17 R2', 'HardwareProfile', 'Alienware x17 R2 high-performance workstation laptop with NVIDIA GeForce RTX 3080 Ti GPU, Intel Core i7/i9, CUDA PyTorch acceleration, high VRAM/RAM for local LLM inference (Ollama/vLLM), and heavy FAISS vector embeddings.', '{"os": "Windows/Linux", "architecture": "x86_64", "gpu": "NVIDIA GeForce RTX 3080 Ti", "acceleration": "CUDA", "local_llm_runtime": "Ollama/vLLM", "recommended_models": ["llama3:70b-quant", "gemma2:27b", "codellama:34b", "mistral:7b"]}')
         ]
 
         conn.executemany("""

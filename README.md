@@ -24,6 +24,15 @@ Casper C2 implements the 6 Levels of ADK Memory as defined in the Google Codelab
 
 For a detailed guide, see [ADK_MEMORY_GUIDE.md](docs/ADK_MEMORY_GUIDE.md).
 
+## Local LLM & Hardware Profiles
+
+This build supports local hardware-optimized execution for Casper's workstations:
+
+- **MacBook Neo**: Apple Silicon (macOS) with Metal Performance Shaders (MPS) PyTorch vector acceleration and unified memory local LLM serving.
+- **Alienware x17 R2**: Intel Core with NVIDIA GeForce RTX 3080 Ti GPU (CUDA acceleration) for high-throughput local LLM execution and FAISS indexing.
+
+For a detailed configuration guide, see [HARDWARE_LOCAL_LLM.md](docs/HARDWARE_LOCAL_LLM.md).
+
 ## Agents CLI Workflow
 
 This repository follows the `agents-cli` workflow for building, evaluating, and deploying agents. For a detailed quickstart on using the CLI, see [AGENTS_CLI_QUICKSTART.md](docs/AGENTS_CLI_QUICKSTART.md).
