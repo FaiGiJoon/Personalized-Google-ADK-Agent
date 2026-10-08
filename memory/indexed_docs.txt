@@ -4,3 +4,7 @@
 {"source": "test_multimodal.txt", "content": "It contains info about a QR code scan.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
 {"source": "test_multimodal.txt", "content": "This is a test document for multimodal memory.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
 {"source": "test_multimodal.txt", "content": "It contains info about a QR code scan.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
+{"source": "test_multimodal.txt", "content": "This is a test document for multimodal memory.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
+{"source": "test_multimodal.txt", "content": "It contains info about a QR code scan.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
+{"source": "test_multimodal.txt", "content": "This is a test document for multimodal memory.", "metadata": {"media_type": "image", "description": "QR Code for login"}}
+{"source": "test_multimodal.txt", "content": "It contains info about a QR code scan.", "metadata": {"media_type": "image", "description": "QR Code for login"}}

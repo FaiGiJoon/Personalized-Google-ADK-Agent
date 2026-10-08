@@ -33,3 +33,8 @@ class DocumentIndexSchema(BaseModel):
 
 class YaraRuleSchema(BaseModel):
     rule: str = Field(..., description="The YARA rule string to validate.")
+
+class HardwareConfigSchema(BaseModel):
+    target_hardware: str = Field("MacBook Neo", description="The target hardware profile ('MacBook Neo' or 'Alienware x17 R2').")
+    local_model_name: Optional[str] = Field(None, description="Optional local model name (e.g. 'llama3:8b', 'gemma2:9b', 'mistral:7b').")
+    ollama_endpoint: Optional[str] = Field("http://localhost:11434", description="Optional local Ollama endpoint URL.")

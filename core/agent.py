@@ -70,9 +70,10 @@ try:
     from skills.security.security_skills import validate_snort_rule, check_quishing_threats, validate_yara_rule
     from skills.gaming.gaming_skills import optimize_pbr_team
     from skills.browser_skills import run_chrome_automation
+    from skills.hardware_skills import get_hardware_optimization_config
 except ImportError as e:
     logger.warning(f"Skill modules could not be imported: {e}")
-    validate_snort_rule = check_quishing_threats = validate_yara_rule = optimize_pbr_team = run_chrome_automation = None
+    validate_snort_rule = check_quishing_threats = validate_yara_rule = optimize_pbr_team = run_chrome_automation = get_hardware_optimization_config = None
 
 # Ensure database is ready
 setup_user_db()
@@ -131,12 +132,16 @@ def create_specialized_agents():
         description="Handles network security, rule validation (Snort/YARA), and threat detection."
     )
 
+    dev_tools = []
+    if ADK_AVAILABLE and get_hardware_optimization_config:
+        dev_tools.append(FunctionTool(get_hardware_optimization_config))
+
     dev_agent = LlmAgent(
         name="Dev_Agent",
         model=MODEL_NAME,
-        tools=[],
+        tools=dev_tools,
         instruction=load_system_prompt("Dev Mode"),
-        description="Assists with software development, code optimization, and debugging."
+        description="Assists with software development, local LLM/hardware configuration, code optimization, and debugging."
     )
 
     assistant_tools = []

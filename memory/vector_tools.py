@@ -45,13 +45,26 @@ _index = None
 _documents = []
 _last_index_mtime = 0
 
+def get_execution_device() -> str:
+    """Detects best available PyTorch execution device (CUDA for NVIDIA / Alienware, MPS for Apple Silicon / MacBook Neo, or CPU)."""
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            return "mps"
+    except Exception as e:
+        logger.debug(f"Device detection fallback to CPU: {e}")
+    return "cpu"
+
 def get_model():
     global _model
     if not DEPENDENCIES_INSTALLED:
         raise ImportError("FAISS or SentenceTransformer not installed.")
     if _model is None:
-        logger.info(f"Loading embedding model: {MODEL_NAME}")
-        _model = SentenceTransformer(MODEL_NAME)
+        device = get_execution_device()
+        logger.info(f"Loading embedding model: {MODEL_NAME} on device: {device}")
+        _model = SentenceTransformer(MODEL_NAME, device=device)
     return _model
 
 def get_index_and_docs():
