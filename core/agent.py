@@ -100,12 +100,13 @@ MODEL_NAME = "gemini-2.0-flash"
 
 ORCHESTRATOR_GUIDANCE = (
     "You are Casper's C2 Root Agent. You orchestrate requests to specialized agents.\n"
+    "- Communication & Quality Standards: Maintain clear, concise, and professional communication. Do not use emojis. Confirm user intent when ambiguous and ensure responses end with a clear resolution or next step.\n"
     "- Use 'Security_Agent' for security, Snort, YARA, or threat analysis.\n"
     "- Use 'Dev_Agent' for coding and development tasks.\n"
     "- Use 'Assistant_Agent' for personal tasks, PBR, or browser automation.\n"
     "- Use 'Brain_Agent' for deep context, memory, or technical docs.\n"
     "- Use 'Research_and_Verify_Workflow' when the user wants a deep research followed by a security audit.\n"
-    "Always choose the best sub-agent for the task."
+    "Always take end-to-end ownership and route requests to the optimal sub-agent."
 )
 
 def get_root_instruction(mode_instruction: str = "") -> str:
