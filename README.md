@@ -42,24 +42,38 @@ The project is organized into several modules:
 ### Prerequisites
 
 - Python 3.11+
-- Google API Key (set in `.env` or as an environment variable `GOOGLE_API_KEY`)
+- A Google API key (from Google AI Studio) or a Google Cloud project for Vertex AI
 
-### Installation
+### Quickstart on Windows (Alienware)
 
-1. Install the Google ADK and other dependencies:
-   ```bash
-   pip install google-adk python-dotenv
-   ```
+This is the primary target machine. From a terminal in the project folder:
 
-2. (Optional) Install additional skill dependencies as needed.
+```bat
+setup.bat        REM creates .venv and installs everything (run once)
+REM edit .env and paste your GOOGLE_API_KEY
+run.bat          REM starts the agent
+```
 
-### Running the Agent
+`run.bat` sets the console to UTF-8 so the prompts render correctly, and launches
+the agent from the isolated `.venv`.
 
-Start the agent by running the main entry point:
+### Quickstart on macOS / Linux
 
 ```bash
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env     # then edit .env and add GOOGLE_API_KEY
 python3 main.py
 ```
+
+### Personalization
+
+Everything about *who the agent works for and the machine it runs on* lives in one
+file: [`personal_profile.py`](personal_profile.py). Edit the `Owner` and `Machine`
+dataclasses there (name, location, timezone, tone, focus areas, laptop, OS, GPU) and
+the change flows into every system prompt, the startup banner, and the orchestrator
+guidance automatically. The agent also detects the machine it is actually running on
+at startup and adapts its advice accordingly.
 
 ### Commands
 

@@ -13,26 +13,47 @@ project_root = str(Path(__file__).resolve().parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+# Personal profile: single source of truth for who the agent serves and the
+# machine it runs on (the Alienware laptop). See profile.py to edit.
+try:
+    from personal_profile import personal_context_block, OWNER
+    PERSONAL_CONTEXT = personal_context_block()
+    OWNER_NAME = OWNER.name
+except Exception as e:  # pragma: no cover - profile is optional at import time
+    logger.warning(f"profile.py could not be loaded: {e}")
+    PERSONAL_CONTEXT = ""
+    OWNER_NAME = "Casper"
+
+
+def _personalize(instruction: str) -> str:
+    """Prepend the owner/machine context to any instruction block."""
+    if PERSONAL_CONTEXT:
+        return f"{PERSONAL_CONTEXT}\n{instruction}"
+    return instruction
+
+
 def load_system_prompt(mode: str = "Security Mode") -> str:
     """Reads the specified mode's instructions from PROMPTS.md."""
     prompts_path = os.path.join(project_root, "PROMPTS.md")
     if not os.path.exists(prompts_path):
         logger.warning("PROMPTS.md not found. Using default instructions.")
-        return "You are Casper's C2 agent. Security-First mindset is active."
+        return _personalize("You are Casper's personal agent. Security-First mindset is active.")
 
     try:
-        with open(prompts_path, 'r') as f:
+        # Force UTF-8: PROMPTS.md contains em-dashes/unicode, and Windows
+        # (Alienware) defaults to cp1252, which raises UnicodeDecodeError.
+        with open(prompts_path, 'r', encoding='utf-8') as f:
             content = f.read()
 
         # Use regex to find the section for the requested mode
         pattern = rf"## {mode}\n(.*?)(?=\n## |\Z)"
         match = re.search(pattern, content, re.DOTALL)
         if match:
-            return match.group(1).strip()
+            return _personalize(match.group(1).strip())
     except Exception as e:
         logger.error(f"Error reading PROMPTS.md: {e}")
 
-    return "You are Casper's C2 agent. Security-First mindset is active."
+    return _personalize("You are Casper's personal agent. Security-First mindset is active.")
 
 from typing import Dict, Any, Optional, List
 
@@ -111,9 +132,10 @@ ORCHESTRATOR_GUIDANCE = (
 
 def get_root_instruction(mode_instruction: str = "") -> str:
     """Returns the full instruction for the Root Agent with optional mode-specific guidance."""
+    base = f"{PERSONAL_CONTEXT}\n{ORCHESTRATOR_GUIDANCE}" if PERSONAL_CONTEXT else ORCHESTRATOR_GUIDANCE
     if mode_instruction:
-        return f"Root Agent Guidance: {mode_instruction}\n\n{ORCHESTRATOR_GUIDANCE}"
-    return ORCHESTRATOR_GUIDANCE
+        return f"Root Agent Guidance: {mode_instruction}\n\n{base}"
+    return base
 
 def create_specialized_agents():
     """Factory to create specialized agents to avoid sharing instances between parents."""

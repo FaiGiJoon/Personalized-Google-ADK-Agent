@@ -71,7 +71,8 @@ def setup_user_db():
             ('timesfm', 'Project', 'Time Series Foundation Model by Google Research. Python.', '{"language": "Python", "tags": ["AI"]}'),
             ('cloud-run-mcp', 'Project', 'MCP server to deploy apps to Cloud Run. JavaScript.', '{"language": "JavaScript", "platform": "Cloud Run"}'),
             ('Pokemon-3DS-Randomizer-tool', 'Project', 'Testing area for OpenClaw. TypeScript.', '{"language": "TypeScript"}'),
-            ('Casper', 'Person', 'Security researcher and automation developer based in the Netherlands. Expert in Google ecosystem (Gemini, Workspace, Cloud Run), networking (MikroTik, RouterOS), and retro-gaming emulators.', '{"location": "Netherlands", "focus": ["Security", "Automation", "Emulators"], "expertise": ["Google ADK", "Python", "TypeScript"]}')
+            ('Casper', 'Person', 'Security researcher and automation developer based in the Netherlands. Expert in Google ecosystem (Gemini, Workspace, Cloud Run), networking (MikroTik, RouterOS), and retro-gaming emulators.', '{"location": "Netherlands", "focus": ["Security", "Automation", "Emulators"], "expertise": ["Google ADK", "Python", "TypeScript"]}'),
+            ('Alienware-Laptop', 'Machine', "Casper's primary daily-driver laptop. Runs Windows with an NVIDIA RTX GPU. Default environment for this agent: assume Windows paths, PowerShell, and local GPU availability.", '{"vendor": "Alienware", "os": "Windows", "gpu": "NVIDIA RTX", "role": "primary", "shell": "PowerShell"}')
         ]
 
         conn.executemany("""

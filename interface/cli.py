@@ -20,6 +20,7 @@ except ImportError:
 
 from core.agent import casper_agent, load_system_prompt, get_root_instruction
 from memory.database import SESSION_URL, SESSION_DB_FILE
+from personal_profile import OWNER, MACHINE, detected_environment
 
 load_dotenv()
 
@@ -28,9 +29,22 @@ async def get_user_input(prompt: str) -> str:
     return await asyncio.to_thread(input, prompt)
 
 async def run_chat():
-    print(f"\n{'='*60}\nCASPER C2 AGENT\n{'='*60}")
+    env = detected_environment()
+    on_target = env["is_windows"]
+    machine_line = (
+        f"{MACHINE.label} ({env['os']} {env['release']})"
+        if on_target
+        else f"{env['os']} host  [note: your {MACHINE.label} target is {MACHINE.os_family}]"
+    )
+    print(f"\n{'='*60}")
+    print(f"  {OWNER.name.upper()}'S PERSONAL AGENT")
+    print(f"{'='*60}")
+    print(f"  Owner    : {OWNER.name}  ({OWNER.location}, {OWNER.timezone})")
+    print(f"  Machine  : {machine_line}")
+    print(f"  Python   : {env['python']}  |  Host: {env['hostname']}")
+    print(f"{'='*60}")
 
-    user_id = "Casper"
+    user_id = OWNER.name
     app_name = casper_agent.name
 
     if ADK_COMPONENTS_AVAILABLE:
@@ -56,13 +70,15 @@ async def run_chat():
         print("Running in MOCK MODE - ADK not installed.")
         session = type('obj', (object,), {'id': 'mock_session'})()
 
-    print("\nCasper C2 is ready! (Type 'exit' or 'quit' to stop)\n")
+    print(f"\nReady, {OWNER.address_as}. (Type 'exit' or 'quit' to stop)\n")
     print("Special Commands: /mode [Security|Dev|Assistant|Brain]\n")
+
+    prompt_label = f"{OWNER.address_as}: "
 
     while True:
         try:
             # Use non-blocking input
-            user_input = (await get_user_input("Casper: ")).strip()
+            user_input = (await get_user_input(prompt_label)).strip()
 
             if user_input.lower() in ["exit", "quit"]:
                 break
@@ -104,7 +120,7 @@ async def run_chat():
         except Exception as e:
             print(f"An error occurred: {e}")
 
-    print(f"\n{'='*60}\nDISCONNECTING CASPER C2...\n{'='*60}")
+    print(f"\n{'='*60}\nSession closed. See you, {OWNER.address_as}.\n{'='*60}")
 
 if __name__ == "__main__":
     # If GEMINI_API_KEY is not set, warn the user
